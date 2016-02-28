@@ -1,8 +1,9 @@
 CC = gcc
 CXX = g++
 
-CFLAGS = -W -Wall -Wextra -O2
-CXXFLAGS = -W -Wall -Wextra -std=c++11 -O2 -Izopfli/src \
+CFLAGS = -W -Wall -Wextra -O2 -Wno-implicit-function-declaration
+# Warning: NO_DEFLATE7Z because it doesn't work yet.
+CXXFLAGS = -W -Wall -Wextra -std=c++11 -O2 -Izopfli/src -I7zip \
 	-Wno-unused-parameter -DNO_DEFLATE7Z
 
 SRC_CXX_SRC = $(wildcard src/*.cpp)
@@ -21,13 +22,17 @@ ZOPFLI_C_OBJ = $(ZOPFLI_C_SRC:.c=.o)
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) -o $@ $< -Wno-implicit-function-declaration
+	$(CC) -c $(CFLAGS) -o $@ $<
 
-maxcso: $(SRC_CXX_OBJ) $(CLI_CXX_OBJ) $(ZOPFLI_C_OBJ)
+maxcso: $(SRC_CXX_OBJ) $(CLI_CXX_OBJ) $(ZOPFLI_C_OBJ) 7zip/7zip.a
 	$(CXX) -lz -luv -llz4 -o $@ $(CXXFLAGS) $^
+
+7zip/7zip.a:
+	$(MAKE) -C 7zip 7zip.a
 
 clean:
 	rm -f $(SRC_CXX_OBJ) $(CLI_CXX_OBJ) $(ZOPFLI_C_OBJ) maxcso
+	$(MAKE) -C 7zip clean
 
 all: maxcso
 
